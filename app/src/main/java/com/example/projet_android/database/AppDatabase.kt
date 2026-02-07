@@ -9,11 +9,13 @@ import com.example.projet_android.dao.ContainerDao
 import com.example.projet_android.dao.OrderDao
 import com.example.projet_android.dao.OrderProductDao
 import com.example.projet_android.dao.ProductDao
+import com.example.projet_android.dao.ContainerOrderDao
 import com.example.projet_android.model.Company
 import com.example.projet_android.model.Container
 import com.example.projet_android.model.Order
 import com.example.projet_android.model.OrderProduct
 import com.example.projet_android.model.Product
+import com.example.projet_android.model.ContainerOrder
 
 @Database(
     entities = [
@@ -21,9 +23,10 @@ import com.example.projet_android.model.Product
         Product::class,
         Order::class,
         OrderProduct::class,
-        Container::class
+        Container::class,
+        ContainerOrder::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -32,6 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun orderDao(): OrderDao
     abstract fun orderProductDao(): OrderProductDao
     abstract fun containerDao(): ContainerDao
+    abstract fun containerOrderDao(): ContainerOrderDao
 
     companion object {
         @Volatile

@@ -19,9 +19,11 @@ data class Order(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val companyId: Int,
+    val orderNumber: String,
     val totalWeight: Double,
     val totalVolume: Double,
     val totalPrice: Double,
-    val priority: Int, // e.g. 1 for high, 0 for normal
-    val status: String // e.g. "PENDING", "SHIPPED"
+    val priority: Int,
+    val status: String,
+    val createdAt: Long = System.currentTimeMillis()
 )

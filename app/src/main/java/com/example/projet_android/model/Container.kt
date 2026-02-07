@@ -9,5 +9,6 @@ data class Container(
     val id: Int = 0,
     val name: String,
     val maxWeight: Double,
-    val maxVolume: Double
+    val maxVolume: Double,
+    val fillThreshold: Double = 0.7
 )

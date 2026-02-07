@@ -10,5 +10,6 @@ data class Product(
     val name: String,
     val weight: Double,
     val volume: Double,
-    val price: Double
+    val price: Double,
+    val fragility: Boolean = false
 )
