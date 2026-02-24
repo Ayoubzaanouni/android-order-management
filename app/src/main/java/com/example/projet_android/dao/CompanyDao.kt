@@ -21,4 +21,8 @@ interface CompanyDao {
     fun getCompany(id: Int): Flow<Company>
     @Query("SELECT * FROM company")
     fun getAllCompanies(): Flow<List<Company>>
+    @Query("SELECT * FROM company WHERE email = :email AND password = :password LIMIT 1")
+    suspend fun login(email: String, password: String): Company?
+    @Query("SELECT * FROM company WHERE email = :email LIMIT 1")
+    suspend fun getCompanyByEmail(email: String): Company?
 }
