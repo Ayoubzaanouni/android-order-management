@@ -17,6 +17,8 @@ interface OrderDao {
     suspend fun update(order: Order): Int
     @Delete
     suspend fun delete(order: Order): Int
+    @Query("DELETE FROM orders")
+    fun deleteAll()
     @Query("SELECT * FROM orders WHERE id = :id")
     fun getOrder(id: Int): Flow<Order>
     @Query("SELECT * FROM orders")

@@ -30,12 +30,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projet_android.database.AppDatabase
 import com.example.projet_android.model.Company
 import com.example.projet_android.ui.screens.LoginScreen
 import com.example.projet_android.ui.screens.ContainerScreen
+import com.example.projet_android.ui.screens.OrderScreen
 import com.example.projet_android.ui.screens.SignUpScreen
 import com.example.projet_android.ui.theme.ProjetandroidTheme
+import com.example.projet_android.ui.view_model.OrderViewModel
 import com.example.projet_android.util.PasswordUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -121,7 +124,7 @@ fun ProjetandroidApp(database: AppDatabase) {
     } else {
         MainAppContent(
             companyId = loggedInCompanyId,
-            database = database,
+            database,
             onLogout = {
                 isLoggedIn = false
                 loggedInCompanyId = -1
@@ -149,9 +152,8 @@ fun MainAppContent(companyId: Int, database: AppDatabase, onLogout: () -> Unit) 
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             when (currentDestination) {
                 AppDestinations.HOME -> {
-                    Text(
-                        text = "Commands List (Company ID: $companyId)",
-                        modifier = Modifier.padding(innerPadding)
+                    OrderScreen(
+                        viewModel = viewModel(factory = OrderViewModel.factory(database, companyId))
                     )
                 }
                 AppDestinations.CONTAINERS -> {
