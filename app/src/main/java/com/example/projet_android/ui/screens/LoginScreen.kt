@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -65,6 +66,9 @@ fun LoginScreen(
                 errorMessage = null
             },
             label = { Text("Email") },
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = Color.Black
+            ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
@@ -77,6 +81,9 @@ fun LoginScreen(
                 errorMessage = null
             },
             label = { Text("Password") },
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = Color.Black
+            ),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
