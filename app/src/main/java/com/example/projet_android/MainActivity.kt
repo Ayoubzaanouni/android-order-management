@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.example.projet_android.database.AppDatabase
 import com.example.projet_android.model.Company
 import com.example.projet_android.ui.screens.LoginScreen
+import com.example.projet_android.ui.screens.ContainerScreen
 import com.example.projet_android.ui.screens.SignUpScreen
 import com.example.projet_android.ui.theme.ProjetandroidTheme
 import com.example.projet_android.util.PasswordUtils
@@ -120,6 +121,7 @@ fun ProjetandroidApp(database: AppDatabase) {
     } else {
         MainAppContent(
             companyId = loggedInCompanyId,
+            database = database,
             onLogout = {
                 isLoggedIn = false
                 loggedInCompanyId = -1
@@ -129,7 +131,7 @@ fun ProjetandroidApp(database: AppDatabase) {
 }
 
 @Composable
-fun MainAppContent(companyId: Int, onLogout: () -> Unit) {
+fun MainAppContent(companyId: Int, database: AppDatabase, onLogout: () -> Unit) {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
     NavigationSuiteScaffold(
@@ -153,9 +155,9 @@ fun MainAppContent(companyId: Int, onLogout: () -> Unit) {
                     )
                 }
                 AppDestinations.CONTAINERS -> {
-                    Text(
-                        text = "Container Configuration",
-                        modifier = Modifier.padding(innerPadding)
+                    ContainerScreen(
+                        containerDao = database.containerDao(),
+                        paddingValues = innerPadding
                     )
                 }
                 AppDestinations.PROFILE -> {

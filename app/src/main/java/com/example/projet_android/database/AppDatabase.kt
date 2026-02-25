@@ -26,7 +26,7 @@ import com.example.projet_android.model.ContainerOrder
         Container::class,
         ContainerOrder::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
