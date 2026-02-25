@@ -10,23 +10,36 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun SeedFab(
-    isLoading : Boolean,
-    onClick   : () -> Unit
+    isLoading: Boolean,
+    onClick: (ordersPerCompany: Int) -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        SeedOrdersDialog(
+            onConfirm = { count ->
+                showDialog = false
+                onClick(count)
+            },
+            onDismiss = { showDialog = false }
+        )
+    }
+
     ExtendedFloatingActionButton(
-        onClick           = { if (!isLoading) onClick() },
-        containerColor    = MaterialTheme.colorScheme.primaryContainer,
-        contentColor      = MaterialTheme.colorScheme.onPrimaryContainer,
+        onClick        = { if (!isLoading) showDialog = true }, // ✅ open dialog instead
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor   = MaterialTheme.colorScheme.onPrimaryContainer,
         icon = {
-            Crossfade(
-                targetState = isLoading,
-                label       = "fab_icon"
-            ) { loading ->
+            Crossfade(targetState = isLoading, label = "fab_icon") { loading ->
                 if (loading) {
                     CircularProgressIndicator(
                         modifier    = Modifier.size(20.dp),
@@ -34,21 +47,14 @@ fun SeedFab(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Icon(
-                        imageVector        = Icons.Default.Refresh,
-                        contentDescription = "Seed orders"
-                    )
+                    Icon(Icons.Default.Refresh, contentDescription = "Seed orders")
                 }
             }
         },
         text = {
-            Crossfade(
-                targetState = isLoading,
-                label       = "fab_text"
-            ) { loading ->
+            Crossfade(targetState = isLoading, label = "fab_text") { loading ->
                 Text(if (loading) "Seeding…" else "Seed Orders")
             }
         }
     )
 }
-

@@ -19,12 +19,9 @@ object OrderSeeder {
 
     private val random = Random(System.currentTimeMillis())
 
-    fun generateOrders(companyIds: List<Int>, ordersPerCompany: IntRange = 1..5): List<Order> {
-        return companyIds.flatMap { companyId ->
-            val orderCount = ordersPerCompany.random(random)
-            (1..orderCount).map {
-                generateOrder(companyId)
-            }
+    fun generateOrders(companyId: Int, orderCount: Int): List<Order> {
+        return (1..orderCount).map {
+            generateOrder(companyId)
         }
     }
 

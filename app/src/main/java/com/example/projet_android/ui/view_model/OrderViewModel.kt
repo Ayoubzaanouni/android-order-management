@@ -5,26 +5,21 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.projet_android.dao.CompanyDao
 import com.example.projet_android.dao.OrderDao
 import com.example.projet_android.database.AppDatabase
-import com.example.projet_android.model.Company
 import com.example.projet_android.model.Order
 import com.example.projet_android.util.OrderSeeder
-import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import kotlinx.coroutines.withContext
 
 sealed interface SeedingState {
     data object Idle    : SeedingState
@@ -35,15 +30,15 @@ sealed interface SeedingState {
 
 class OrderViewModel(
     private val orderDao: OrderDao,
-    private val companyDao: CompanyDao,
+    private val companyId: Int
 ) : ViewModel() {
     companion object {
-        fun factory(database: AppDatabase): ViewModelProvider.Factory =
+        fun factory(database: AppDatabase, companyId: Int): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer {
                     OrderViewModel(
                         orderDao  = database.orderDao(),
-                        companyDao = database.companyDao()
+                        companyId
                     )
                 }
             }
@@ -65,42 +60,37 @@ class OrderViewModel(
             orders
                 .filter { it.isEmpty() }
                 .take(1)
-                .collect { performSeed(triggeredByUser = false) }
+                .collect { performSeed(triggeredByUser = false, companyId, 50) }
         }
     }
 
-    fun onSeedButtonClicked() {
+    fun onSeedButtonClicked(orderCount: Int) {
         if (_seedingState.value is SeedingState.Loading) return
-        viewModelScope.launch { performSeed(triggeredByUser = true) }
+        viewModelScope.launch { performSeed(triggeredByUser = true, companyId, orderCount) }
     }
 
     fun resetSeedingState() {
         _seedingState.update { SeedingState.Idle }
     }
 
-    private suspend fun performSeed(triggeredByUser: Boolean) {
+    private suspend fun performSeed(triggeredByUser: Boolean, companyId: Int, orderCount: Int) {
         _seedingState.update { SeedingState.Loading }
 
         runCatching {
-            // 1. Fetch available companies to link orders against
-            val companies = companyDao.getAllCompanies().first()
+            withContext(Dispatchers.IO) {
+                // 1. If re-seeding manually, wipe existing orders first
+                if (triggeredByUser) orderDao.deleteAll()
 
-            check(companies.count() != 0) {
-                "No companies found. Please seed companies first."
+                // 2. Generate and insert fake orders
+                val generatedOrders = OrderSeeder.generateOrders(
+                    companyId,
+                    orderCount,
+                )
+
+                generatedOrders.forEach { order -> orderDao.insert(order) }
+
+                generatedOrders.size
             }
-
-            // 2. If re-seeding manually, wipe existing orders first
-            if (triggeredByUser) orderDao.deleteAll()
-
-            // 3. Generate and insert fake orders
-            val generatedOrders = OrderSeeder.generateOrders(
-                companyIds       = companies.map { it.id },
-                ordersPerCompany = 2..6
-            )
-
-            generatedOrders.forEach { order -> orderDao.insert(order) }
-
-            generatedOrders.size
         }
             .onSuccess { count ->
                 val trigger = if (triggeredByUser) "Manual" else "Auto"

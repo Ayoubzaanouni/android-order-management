@@ -152,7 +152,7 @@ fun MainAppContent(companyId: Int, database: AppDatabase, onLogout: () -> Unit) 
             when (currentDestination) {
                 AppDestinations.HOME -> {
                     OrderScreen(
-                        viewModel = viewModel(factory = OrderViewModel.factory(database))
+                        viewModel = viewModel(factory = OrderViewModel.factory(database, companyId))
                     )
                 }
                 AppDestinations.CONTAINERS -> {
