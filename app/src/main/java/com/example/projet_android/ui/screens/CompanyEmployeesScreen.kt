@@ -104,17 +104,20 @@ fun CompanyEmployeesScreen(
         AddEmployeeDialog(
             onDismiss = { showAddDialog = false },
             onConfirm = { name, email, password ->
-                scope.launch {
-                    employeeDao.insert(
-                        Employee(
-                            companyId = companyId,
-                            name = name,
-                            email = email,
-                            password = PasswordUtils.hash(password)
-                        )
-                    )
+                val existingEmployee = employeeDao.getByEmail(email)
+                if (existingEmployee != null) {
+                    return@AddEmployeeDialog "This email is already registered to an employee"
                 }
-                showAddDialog = false
+
+                employeeDao.insert(
+                    Employee(
+                        companyId = companyId,
+                        name = name,
+                        email = email,
+                        password = PasswordUtils.hash(password)
+                    )
+                )
+                null
             }
         )
     }
@@ -177,7 +180,11 @@ private fun EmployeeCard(employee: Employee, onDelete: () -> Unit) {
 }
 
 @Composable
-private fun AddEmployeeDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) -> Unit) {
+private fun AddEmployeeDialog(
+    onDismiss: () -> Unit,
+    onConfirm: suspend (String, String, String) -> String?
+) {
+    val scope = rememberCoroutineScope()
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -221,7 +228,16 @@ private fun AddEmployeeDialog(onDismiss: () -> Unit, onConfirm: (String, String,
                         name.isBlank() -> error = "Name is required"
                         email.isBlank() -> error = "Email is required"
                         password.length < 6 -> error = "Password must be at least 6 characters"
-                        else -> onConfirm(name.trim(), email.trim(), password)
+                        else -> {
+                            scope.launch {
+                                val resultError = onConfirm(name.trim(), email.trim(), password)
+                                if (resultError != null) {
+                                    error = resultError
+                                } else {
+                                    onDismiss()
+                                }
+                            }
+                        }
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = CEAccent)
