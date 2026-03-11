@@ -17,8 +17,17 @@ interface ProductDao {
     suspend fun update(product: Product): Int
     @Delete
     suspend fun delete(product: Product): Int
+    @Query("DELETE FROM product")
+    fun deleteAll()
     @Query("SELECT * FROM product WHERE id = :id")
     fun getProduct(id: Int): Flow<Product>
     @Query("SELECT * FROM product")
     fun getAllProducts(): Flow<List<Product>>
+
+    @Query("""
+        SELECT p.* FROM product p
+        INNER JOIN order_product op ON p.id = op.productId
+        WHERE op.orderId = :orderId
+    """)
+    fun getProductsForOrder(orderId: Int): Flow<List<Product>>
 }

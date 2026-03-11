@@ -1,6 +1,7 @@
 package com.example.projet_android.util
 
 import com.example.projet_android.model.Order
+import com.example.projet_android.model.Product
 import java.util.Calendar
 import kotlin.math.absoluteValue
 import kotlin.math.pow
@@ -19,16 +20,39 @@ object OrderSeeder {
 
     private val random = Random(System.currentTimeMillis())
 
-    fun generateOrders(companyId: Int, orderCount: Int): List<Order> {
+    fun generateOrders(companyId: Int, orderCount: Int): List<Pair<Order, List<Product>>> {
         return (1..orderCount).map {
-            generateOrder(companyId)
+            val products = generateProducts()
+            val totalWeight = products.sumOf { it.weight }.round(2)
+            val totalVolume = products.sumOf { it.volume }.round(3)
+            val totalPrice = products.sumOf { it.price }.round(2)
+
+            generateOrder(companyId, totalWeight, totalVolume, totalPrice) to products
         }
     }
 
-    private fun generateOrder(companyId: Int): Order {
-        val totalWeight = randomDouble(min = 0.5, max = 1000.0, decimals = 2)
-        val totalVolume = randomDouble(min = 0.1, max = 500.0, decimals = 2)
-        val totalPrice  = randomDouble(min = 10.0, max = 50_000.0, decimals = 2)
+    private fun Double.round(decimals: Int): Double {
+        val factor = 10.0.pow(decimals)
+        return (this * factor).roundToInt() / factor
+    }
+
+    private fun generateProducts(): List<Product> {
+        val productCount = random.nextInt(1, 6)
+        return (1..productCount).map { generateProduct() }
+    }
+
+    private fun generateProduct(): Product {
+        val names = listOf("Laptop", "Smartphone", "Tablet", "Monitor", "Keyboard", "Mouse", "Chair", "Desk", "Lamp", "Headphones")
+        return Product(
+            name = "${names.random(random)} ${random.nextInt(100, 999)}",
+            weight = randomDouble(0.1, 20.0, 2),
+            volume = randomDouble(0.01, 1.0, 3),
+            price = randomDouble(5.0, 2000.0, 2),
+            fragility = random.nextBoolean()
+        )
+    }
+
+    private fun generateOrder(companyId: Int, totalWeight: Double, totalVolume: Double, totalPrice: Double): Order {
 
         return Order(
             companyId   = companyId,
