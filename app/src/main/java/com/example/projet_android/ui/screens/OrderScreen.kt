@@ -11,7 +11,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projet_android.ui.components.EmptyOrdersPlaceholder
@@ -24,7 +23,9 @@ import com.example.projet_android.ui.view_model.SeedingState
 
 @Composable
 fun OrderScreen(
-    viewModel: OrderViewModel = viewModel()
+    viewModel       : OrderViewModel = viewModel(),
+    canDelete       : Boolean = true,
+    canChangeStatus : Boolean = true
 ) {
     val orders by viewModel.orders.collectAsStateWithLifecycle()
     val seedingState by viewModel.seedingState.collectAsStateWithLifecycle()
@@ -53,10 +54,12 @@ fun OrderScreen(
             )
         },
         floatingActionButton = {
-            SeedFab(
-                isLoading = seedingState is SeedingState.Loading,
-                onClick   = viewModel::onSeedButtonClicked
-            )
+            if (canDelete) {
+                SeedFab(
+                    isLoading = seedingState is SeedingState.Loading,
+                    onClick   = viewModel::onSeedButtonClicked
+                )
+            }
         }
     ) { padding ->
         Box(
@@ -73,12 +76,18 @@ fun OrderScreen(
                 }
                 else -> {
                     OrderList(
-                        orders    = orders,
-                        isLoading = seedingState is SeedingState.Loading,
-                        getProductsForOrder = viewModel::getProductsForOrder
+                        orders         = orders,
+                        isLoading      = seedingState is SeedingState.Loading,
+                        getProductsForOrder = viewModel::getProductsForOrder,
+                        canDelete      = canDelete,
+                        onDelete       = { order -> viewModel.deleteOrder(order) },
+                        onStatusChange = if (canChangeStatus) { order, newStatus ->
+                            viewModel.updateOrderStatus(order, newStatus)
+                        } else null
                     )
                 }
             }
         }
     }
 }
+

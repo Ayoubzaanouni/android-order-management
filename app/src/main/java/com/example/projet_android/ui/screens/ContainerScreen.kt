@@ -90,7 +90,8 @@ private fun ContainerStatus.color() = when (this) {
 @Composable
 fun ContainerScreen(
     containerDao: ContainerDao,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    readOnly: Boolean = false
 ) {
     val allContainers by containerDao.getAllContainers().collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
@@ -119,8 +120,10 @@ fun ContainerScreen(
     Scaffold(
         modifier = Modifier.padding(paddingValues),
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Container")
+            if (!readOnly) {
+                FloatingActionButton(onClick = { showAddDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Container")
+                }
             }
         }
     ) { innerPadding ->
@@ -251,10 +254,11 @@ fun ContainerScreen(
                     items(displayed, key = { it.id }) { container ->
                         ContainerCard(
                             container = container,
-                            onEdit = { editingContainer = container },
-                            onDelete = { deletingContainer = container },
+                            readOnly  = readOnly,
+                            onEdit = { if (!readOnly) editingContainer = container },
+                            onDelete = { if (!readOnly) deletingContainer = container },
                             onToggleEnabled = {
-                                scope.launch {
+                                if (!readOnly) scope.launch {
                                     val newEnabled = !container.enabled
                                     val newStatus = when {
                                         newEnabled && container.status == ContainerStatus.DISABLED -> ContainerStatus.ACTIVE
@@ -343,6 +347,7 @@ fun ContainerScreen(
 @Composable
 private fun ContainerCard(
     container: Container,
+    readOnly: Boolean = false,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onToggleEnabled: () -> Unit
@@ -352,7 +357,7 @@ private fun ContainerCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onEdit() },
+            .then(if (!readOnly) Modifier.clickable { onEdit() } else Modifier),
         elevation = CardDefaults.cardElevation(defaultElevation = if (container.enabled) 2.dp else 0.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = alpha)
@@ -383,23 +388,25 @@ private fun ContainerCard(
                         )
                     }
                 }
-                Switch(
-                    checked = container.enabled,
-                    onCheckedChange = { onToggleEnabled() }
-                )
-                IconButton(onClick = onEdit, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = MaterialTheme.colorScheme.primary
+                if (!readOnly) {
+                    Switch(
+                        checked = container.enabled,
+                        onCheckedChange = { onToggleEnabled() }
                     )
-                }
-                IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error
-                    )
+                    IconButton(onClick = onEdit, modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

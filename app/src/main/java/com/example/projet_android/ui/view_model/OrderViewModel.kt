@@ -33,6 +33,21 @@ sealed interface SeedingState {
     data class  Error  (val message: String) : SeedingState
 }
 
+enum class OrderStatus(val label: String) {
+    PENDING("PENDING"),
+    PROCESSING("PROCESSING"),
+    SHIPPED("SHIPPED"),
+    DELIVERED("DELIVERED"),
+    CANCELLED("CANCELLED");
+
+    fun next(): OrderStatus? = when (this) {
+        PENDING    -> PROCESSING
+        PROCESSING -> SHIPPED
+        SHIPPED    -> DELIVERED
+        else       -> null
+    }
+}
+
 class OrderViewModel(
     private val orderDao: OrderDao,
     private val productDao: ProductDao,
@@ -86,6 +101,16 @@ class OrderViewModel(
         _seedingState.update { SeedingState.Idle }
     }
 
+    /** Company-only: delete an order */
+    fun deleteOrder(order: Order) {
+        viewModelScope.launch(Dispatchers.IO) { orderDao.delete(order) }
+    }
+
+    /** Employee + Company: advance an order to its next status */
+    fun updateOrderStatus(order: Order, newStatus: String) {
+        viewModelScope.launch(Dispatchers.IO) { orderDao.updateStatus(order.id, newStatus) }
+    }
+
     private suspend fun performSeed(triggeredByUser: Boolean, companyId: Int, orderCount: Int) {
         _seedingState.update { SeedingState.Loading }
 
@@ -111,7 +136,6 @@ class OrderViewModel(
                         orderProductDao.insert(OrderProduct(orderId = orderId, productId = productId))
                     }
                 }
-
                 generatedOrders.size
             }
         }
@@ -123,9 +147,7 @@ class OrderViewModel(
             }
             .onFailure { error ->
                 _seedingState.update {
-                    SeedingState.Error(
-                        error.message ?: "An unexpected error occurred during seeding."
-                    )
+                    SeedingState.Error(error.message ?: "An unexpected error occurred during seeding.")
                 }
             }
     }
