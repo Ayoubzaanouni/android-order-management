@@ -74,7 +74,8 @@ fun OrderScreen(
                 else -> {
                     OrderList(
                         orders    = orders,
-                        isLoading = seedingState is SeedingState.Loading
+                        isLoading = seedingState is SeedingState.Loading,
+                        getProductsForOrder = viewModel::getProductsForOrder
                     )
                 }
             }

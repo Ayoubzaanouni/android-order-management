@@ -6,10 +6,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.projet_android.dao.OrderDao
+import com.example.projet_android.dao.ProductDao
 import com.example.projet_android.database.AppDatabase
 import com.example.projet_android.model.Order
+import com.example.projet_android.model.Product
+import com.example.projet_android.dao.OrderProductDao
+import com.example.projet_android.model.OrderProduct
 import com.example.projet_android.util.OrderSeeder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +35,8 @@ sealed interface SeedingState {
 
 class OrderViewModel(
     private val orderDao: OrderDao,
+    private val productDao: ProductDao,
+    private val orderProductDao: OrderProductDao,
     private val companyId: Int
 ) : ViewModel() {
     companion object {
@@ -38,7 +45,9 @@ class OrderViewModel(
                 initializer {
                     OrderViewModel(
                         orderDao  = database.orderDao(),
-                        companyId
+                        productDao = database.productDao(),
+                        orderProductDao = database.orderProductDao(),
+                        companyId = companyId
                     )
                 }
             }
@@ -46,6 +55,10 @@ class OrderViewModel(
 
     private val _seedingState = MutableStateFlow<SeedingState>(SeedingState.Idle)
     val seedingState: StateFlow<SeedingState> = _seedingState.asStateFlow()
+
+    fun getProductsForOrder(orderId: Int): Flow<List<Product>> {
+        return productDao.getProductsForOrder(orderId)
+    }
 
     val orders: StateFlow<List<Order>> = orderDao
         .getAllOrders()
@@ -79,7 +92,11 @@ class OrderViewModel(
         runCatching {
             withContext(Dispatchers.IO) {
                 // 1. If re-seeding manually, wipe existing orders first
-                if (triggeredByUser) orderDao.deleteAll()
+                if (triggeredByUser) {
+                    orderProductDao.deleteAll()
+                    orderDao.deleteAll()
+                    productDao.deleteAll()
+                }
 
                 // 2. Generate and insert fake orders
                 val generatedOrders = OrderSeeder.generateOrders(
@@ -87,7 +104,13 @@ class OrderViewModel(
                     orderCount,
                 )
 
-                generatedOrders.forEach { order -> orderDao.insert(order) }
+                generatedOrders.forEach { (order, products) -> 
+                    val orderId = orderDao.insert(order).toInt()
+                    products.forEach { product ->
+                        val productId = productDao.insert(product).toInt()
+                        orderProductDao.insert(OrderProduct(orderId = orderId, productId = productId))
+                    }
+                }
 
                 generatedOrders.size
             }

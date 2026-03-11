@@ -16,11 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.projet_android.model.Order
+import kotlinx.coroutines.flow.Flow
+import com.example.projet_android.model.Product
 
 @Composable
 fun OrderList(
     orders    : List<Order>,
     isLoading : Boolean,
+    getProductsForOrder: (Int) -> Flow<List<Product>>,
     modifier  : Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -41,6 +44,7 @@ fun OrderList(
             ) { order ->
                 OrderCard(
                     order    = order,
+                    getProductsForOrder = getProductsForOrder,
                     modifier = Modifier.animateItem()
                 )
             }
