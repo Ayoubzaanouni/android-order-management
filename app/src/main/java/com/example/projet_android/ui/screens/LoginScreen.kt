@@ -1,26 +1,9 @@
 package com.example.projet_android.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,13 +11,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 
+enum class LoginRole { COMPANY, EMPLOYEE, ADMIN }
+
+typealias LoginResult = Triple<LoginRole, Int, Int>
+
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (companyId: Int) -> Unit,
+    onLoginSuccess: (role: LoginRole, id: Int, companyId: Int) -> Unit,
     onNavigateToSignUp: () -> Unit,
-    onLogin: suspend (email: String, password: String) -> Int?
+    onLogin: suspend (identifier: String, password: String) -> LoginResult?
 ) {
-    var email by remember { mutableStateOf("") }
+    var identifier by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -51,7 +38,7 @@ fun LoginScreen(
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "Sign in to continue",
             style = MaterialTheme.typography.bodyMedium,
@@ -59,16 +46,12 @@ fun LoginScreen(
         )
 
         Spacer(modifier = Modifier.height(48.dp))
+
         OutlinedTextField(
-            value = email,
-            onValueChange = {
-                email = it
-                errorMessage = null
-            },
-            label = { Text("Email") },
-            textStyle = MaterialTheme.typography.bodyLarge.copy(
-                color = Color.Black
-            ),
+            value = identifier,
+            onValueChange = { identifier = it; errorMessage = null },
+            label = { Text("Email or Username") },
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
@@ -76,19 +59,15 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = password,
-            onValueChange = {
-                password = it
-                errorMessage = null
-            },
+            onValueChange = { password = it; errorMessage = null },
             label = { Text("Password") },
-            textStyle = MaterialTheme.typography.bodyLarge.copy(
-                color = Color.Black
-            ),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
+
         if (errorMessage != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -97,13 +76,11 @@ fun LoginScreen(
                 style = MaterialTheme.typography.bodySmall
             )
         }
+
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            onClick = {
-                isLoading = true
-                errorMessage = null
-            },
-            enabled = !isLoading && email.isNotBlank() && password.isNotBlank(),
+            onClick = { isLoading = true; errorMessage = null },
+            enabled = !isLoading && identifier.isNotBlank() && password.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
         ) {
             if (isLoading) {
@@ -115,21 +92,23 @@ fun LoginScreen(
                 Text("Sign In")
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(12.dp))
         TextButton(onClick = onNavigateToSignUp) {
-            Text("Don't have an account? Sign Up")
+            Text("Don't have an account? Register Company")
         }
     }
 
     LaunchedEffect(isLoading) {
         if (isLoading) {
-            val companyId = onLogin(email, password)
+            val result = onLogin(identifier, password)
             isLoading = false
-            if (companyId != null) {
-                onLoginSuccess(companyId)
+            if (result != null) {
+                onLoginSuccess(result.first, result.second, result.third)
             } else {
-                errorMessage = "Invalid email or password"
+                errorMessage = "Invalid credentials or account not approved"
             }
         }
     }
 }
+

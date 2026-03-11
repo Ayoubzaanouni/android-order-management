@@ -23,4 +23,7 @@ interface OrderDao {
     fun getOrder(id: Int): Flow<Order>
     @Query("SELECT * FROM orders")
     fun getAllOrders(): Flow<List<Order>>
+    @Query("UPDATE orders SET status = :status WHERE id = :id")
+    suspend fun updateStatus(id: Int, status: String)
 }
+

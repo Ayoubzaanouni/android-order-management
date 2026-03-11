@@ -3,6 +3,7 @@ package com.example.projet_android.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +20,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,11 +54,18 @@ import com.example.projet_android.model.Product
 
 @Composable
 fun OrderCard(
-    order    : Order,
+    order          : Order,
     getProductsForOrder: (Int) -> Flow<List<Product>>,
-    modifier : Modifier = Modifier
+    modifier       : Modifier = Modifier,
+    canDelete      : Boolean = false,
+    onDelete       : () -> Unit = {},
+    onStatusChange : ((newStatus: String) -> Unit)? = null  // null = no status control
 ) {
     var showDialog by remember { mutableStateOf(false) }
+    val currentStatus = try {
+        com.example.projet_android.ui.view_model.OrderStatus.valueOf(order.status)
+    } catch (_: Exception) { null }
+    val nextStatus = currentStatus?.next()
 
     Card(
         modifier  = modifier
@@ -74,7 +84,7 @@ fun OrderCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text       = order.orderNumber,
                         style      = MaterialTheme.typography.titleMedium,
@@ -88,6 +98,16 @@ fun OrderCard(
                     )
                 }
                 StatusChip(status = order.status)
+                if (canDelete) {
+                    IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete order",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
             }
 
             HorizontalDivider(
@@ -131,7 +151,25 @@ fun OrderCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
+            if (onStatusChange != null && nextStatus != null) {
+                Spacer(Modifier.height(10.dp))
+                OutlinedButton(
+                    onClick  = { onStatusChange(nextStatus.label) },
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(vertical = 6.dp)
+                ) {
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "Mark as ${nextStatus.label}",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
         }
     }
 
@@ -217,6 +255,7 @@ fun OrderCard(
         )
     }
 }
+
 
 @Composable
 private fun MetricItem(

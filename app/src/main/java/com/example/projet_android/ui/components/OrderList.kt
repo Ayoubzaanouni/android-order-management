@@ -21,10 +21,13 @@ import com.example.projet_android.model.Product
 
 @Composable
 fun OrderList(
-    orders    : List<Order>,
-    isLoading : Boolean,
+    orders         : List<Order>,
+    isLoading      : Boolean,
     getProductsForOrder: (Int) -> Flow<List<Product>>,
-    modifier  : Modifier = Modifier
+    modifier       : Modifier = Modifier,
+    canDelete      : Boolean = false,
+    onDelete       : (Order) -> Unit = {},
+    onStatusChange : ((order: Order, newStatus: String) -> Unit)? = null
 ) {
     Box(modifier = modifier.fillMaxSize()) {
 
@@ -33,7 +36,7 @@ fun OrderList(
                 start  = 16.dp,
                 end    = 16.dp,
                 top    = 8.dp,
-                bottom = 88.dp          // clear the FAB
+                bottom = 88.dp
             ),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier            = Modifier.fillMaxSize()
@@ -43,14 +46,15 @@ fun OrderList(
                 key   = { it.id }
             ) { order ->
                 OrderCard(
-                    order    = order,
+                    order          = order,
                     getProductsForOrder = getProductsForOrder,
-                    modifier = Modifier.animateItem()
+                    modifier       = Modifier.animateItem(),
+                    canDelete      = canDelete,
+                    onDelete       = { onDelete(order) },
+                    onStatusChange = onStatusChange?.let { cb -> { newStatus -> cb(order, newStatus) } }
                 )
             }
         }
-
-        // subtle top shimmer while re-seeding over existing data
         AnimatedVisibility(
             visible = isLoading,
             enter   = fadeIn(),
@@ -61,4 +65,3 @@ fun OrderList(
         }
     }
 }
-
