@@ -12,43 +12,48 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Mauve,
+    secondary = Blue,
+    tertiary = Pink,
+    background = Base,
+    surface = Surface0,
+    onPrimary = Base,
+    onSecondary = Base,
+    onTertiary = Base,
+    onBackground = Text,
+    onSurface = Text,
+    error = Red,
+    onError = Base,
+    outline = Overlay0,
+    surfaceVariant = Surface1,
+    onSurfaceVariant = Subtext0
 )
 
+// For a TUI feel, we can use the same palette or a slightly lighter variation, 
+// but usually TUI is dark. Let's keep a consistent look.
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = Blue,
+    secondary = Teal,
+    tertiary = Rosewater,
+    background = Base, // Keeping it dark for that terminal look even in "light" mode or just use Latte palette
+    surface = Surface0,
+    onPrimary = Base,
+    onSecondary = Base,
+    onTertiary = Base,
+    onBackground = Text,
+    onSurface = Text,
+    error = Red,
+    onError = Base
 )
 
 @Composable
 fun ProjetandroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Dynamic color disabled to maintain the specific terminal/catppuccin aesthetic
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else DarkColorScheme // Force dark for TUI look or use LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

@@ -10,38 +10,41 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.example.projet_android.ui.theme.*
 
 @Composable
 fun ContainerEmptyState(
     isCompletelyEmpty: Boolean
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(
-        ),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
             Text(
                 text = if (isCompletelyEmpty)
-                    "No containers yet"
+                    "ERR: NO_CONTAINERS_FOUND"
                 else
-                    "No containers match filters",
-                style = MaterialTheme.typography.titleMedium
+                    "WRN: FILTER_RETURNED_EMPTY_SET",
+                style = MaterialTheme.typography.titleMedium,
+                fontFamily = FontFamily.Monospace,
+                color = if (isCompletelyEmpty) Red else Yellow
             )
 
             Spacer(Modifier.height(8.dp))
 
             Text(
                 text = if (isCompletelyEmpty)
-                    "Tap + to add your first container"
+                    "PROMPT: CLICK [+] TO INITIALIZE"
                 else
-                    "Try adjusting filters",
+                    "PROMPT: ADJUST FILTERS TO RETRY",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontFamily = FontFamily.Monospace,
+                color = Overlay2
             )
         }
     }
 }
-

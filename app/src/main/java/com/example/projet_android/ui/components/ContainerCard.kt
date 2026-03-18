@@ -1,5 +1,6 @@
 package com.example.projet_android.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,15 +21,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.projet_android.model.Container
 import com.example.projet_android.ui.screens.color
 import com.example.projet_android.ui.screens.label
+import com.example.projet_android.ui.theme.*
 import kotlin.math.roundToInt
 
 @Composable
@@ -44,9 +50,11 @@ fun ContainerCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onEdit() },
-        elevation = CardDefaults.cardElevation(defaultElevation = if (container.enabled) 2.dp else 0.dp),
+        shape = RectangleShape,
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, if (container.enabled) Surface2 else Surface0),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = alpha)
+            containerColor = if (container.enabled) Surface0 else Base
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -56,18 +64,21 @@ fun ContainerCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = container.name,
-                        style = MaterialTheme.typography.titleMedium,
+                        text = "> ${container.name}",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha)
+                        color = if (container.enabled) Blue else Subtext0
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Badge(
-                        containerColor = container.status.color().copy(alpha = 0.15f),
+                        containerColor = container.status.color().copy(alpha = 0.1f),
                     ) {
                         Text(
-                            text = container.status.label(),
+                            text = "[ ${container.status.label()} ]",
                             color = container.status.color(),
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -76,32 +87,41 @@ fun ContainerCard(
                 }
                 Switch(
                     checked = container.enabled,
-                    onCheckedChange = { onToggleEnabled() }
+                    onCheckedChange = { onToggleEnabled() },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Green,
+                        checkedTrackColor = Surface1,
+                        uncheckedThumbColor = Overlay0,
+                        uncheckedTrackColor = Surface0
+                    )
                 )
                 IconButton(onClick = onEdit, modifier = Modifier.size(36.dp)) {
                     Icon(
                         Icons.Default.Edit,
                         contentDescription = "Edit",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = Sapphire
                     )
                 }
                 IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error
+                        tint = Red
                     )
                 }
             }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = Surface1
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                ContainerStat("Max Weight", "${container.maxWeight} kg", alpha)
-                ContainerStat("Max Volume", "${container.maxVolume} m³", alpha)
+                ContainerStat("WEIGHT", "${container.maxWeight}kg", alpha)
+                ContainerStat("VOLUME", "${container.maxVolume}m3", alpha)
                 ContainerStat(
-                    "Fill Threshold",
+                    "FILL",
                     "${(container.fillThreshold * 100).roundToInt()}%",
                     alpha
                 )
@@ -116,12 +136,12 @@ private fun ContainerStat(label: String, value: String, alpha: Float = 1f) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha)
+            color = Overlay2.copy(alpha = alpha)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha)
+            color = Text.copy(alpha = alpha)
         )
     }
 }

@@ -2,7 +2,6 @@ package com.example.projet_android.ui.screens
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,9 +21,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,134 +58,83 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "Order Management",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Sign in to continue",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(48.dp))
-
-        OutlinedTextField(
-            value = identifier,
-            onValueChange = { identifier = it; errorMessage = null },
-            label = { Text("Email or Username") },
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it; errorMessage = null },
-            label = { Text("Password") },
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        if (errorMessage != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = errorMessage!!,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            onClick = { isLoading = true; errorMessage = null },
-            enabled = !isLoading && identifier.isNotBlank() && password.isNotBlank(),
-            modifier = Modifier.fillMaxWidth()
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(28.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                // ── Header ──────────────────────────────────────────
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
+                )
+                Text(
+                    text = "Order Management",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Sign in to your account",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                // ── Fields ──────────────────────────────────────────
+                OutlinedTextField(
+                    value = identifier,
+                    onValueChange = { identifier = it; errorMessage = null },
+                    label = { Text("Email or Username") },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    singleLine = true,
+                    isError = errorMessage != null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it; errorMessage = null },
+                    label = { Text("Password") },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    isError = errorMessage != null,
+                    supportingText = errorMessage?.let { msg -> { Text(msg, color = MaterialTheme.colorScheme.error) } },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // ── Actions ─────────────────────────────────────────
+                Button(
+                    onClick = { isLoading = true; errorMessage = null },
+                    enabled = !isLoading && identifier.isNotBlank() && password.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    // ── Header ──────────────────────────────────────────
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(48.dp)
-                    )
-                    Text(
-                        text = "Order Management",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "Sign in to your account",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                    // ── Fields ──────────────────────────────────────────
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it; errorMessage = null },
-                        label = { Text("Email") },
-                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        singleLine = true,
-                        isError = errorMessage != null,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it; errorMessage = null },
-                        label = { Text("Password") },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true,
-                        isError = errorMessage != null,
-                        supportingText = errorMessage?.let { msg -> { Text(msg, color = MaterialTheme.colorScheme.error) } },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    // ── Actions ─────────────────────────────────────────
-                    Button(
-                        onClick = { isLoading = true },
-                        enabled = !isLoading && email.isNotBlank() && password.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Crossfade(targetState = isLoading, label = "login_btn") { loading ->
-                            if (loading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text("Sign In")
-                            }
+                    Crossfade(targetState = isLoading, label = "login_btn") { loading ->
+                        if (loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Sign In")
                         }
                     }
+                }
 
-                    TextButton(onClick = onNavigateToSignUp) {
-                        Text("No account yet? Sign Up")
-                    }
+                TextButton(onClick = onNavigateToSignUp) {
+                    Text("No account yet? Sign Up")
                 }
             }
         }
@@ -212,4 +157,3 @@ fun LoginScreen(
         }
     }
 }
-

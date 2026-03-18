@@ -1,5 +1,7 @@
 package com.example.projet_android.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,8 +15,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,10 +28,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.example.projet_android.model.ContainerStatus
 import com.example.projet_android.ui.screens.ContainerSortOrder
 import com.example.projet_android.ui.screens.label
+import com.example.projet_android.ui.theme.*
 
 @Composable
 fun ContainerFilters(
@@ -49,21 +57,21 @@ fun ContainerFilters(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            FilterChip(
+            TerminalFilterChip(
                 selected = filterStatus == null,
                 onClick = { onStatusChange(null) },
-                label = { Text("All") }
+                label = "ALL"
             )
 
             ContainerStatus.entries.forEach { status ->
-                FilterChip(
+                TerminalFilterChip(
                     selected = filterStatus == status,
                     onClick = {
                         onStatusChange(
                             if (filterStatus == status) null else status
                         )
                     },
-                    label = { Text(status.label()) }
+                    label = status.label().uppercase()
                 )
             }
         }
@@ -78,24 +86,50 @@ fun ContainerFilters(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(
                     checked = filterEnabledOnly,
-                    onCheckedChange = onEnabledOnlyChange
+                    onCheckedChange = onEnabledOnlyChange,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Green,
+                        checkedTrackColor = Surface1,
+                        uncheckedThumbColor = Overlay0,
+                        uncheckedTrackColor = Surface0
+                    )
                 )
                 Spacer(Modifier.width(8.dp))
-                Text("Enabled only")
+                Text(
+                    "ENABLED_ONLY",
+                    fontFamily = FontFamily.Monospace,
+                    color = Text,
+                    style = MaterialTheme.typography.labelMedium
+                )
             }
 
             Box {
-                OutlinedButton(onClick = { showSortMenu = true }) {
-                    Text(sortOrder.label)
+                OutlinedButton(
+                    onClick = { showSortMenu = true },
+                    shape = RectangleShape,
+                    border = BorderStroke(1.dp, Overlay1)
+                ) {
+                    Text(
+                        sortOrder.label.uppercase(),
+                        fontFamily = FontFamily.Monospace,
+                        color = Text
+                    )
                 }
 
                 DropdownMenu(
                     expanded = showSortMenu,
-                    onDismissRequest = { showSortMenu = false }
+                    onDismissRequest = { showSortMenu = false },
+                    modifier = Modifier.background(Surface0)
                 ) {
                     ContainerSortOrder.entries.forEach {
                         DropdownMenuItem(
-                            text = { Text(it.label) },
+                            text = { 
+                                Text(
+                                    it.label.uppercase(), 
+                                    fontFamily = FontFamily.Monospace,
+                                    color = Text
+                                ) 
+                            },
                             onClick = {
                                 onSortChange(it)
                                 showSortMenu = false
@@ -108,3 +142,34 @@ fun ContainerFilters(
     }
 }
 
+@Composable
+fun TerminalFilterChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { 
+            Text(
+                if (selected) "* $label" else "  $label",
+                fontFamily = FontFamily.Monospace
+            ) 
+        },
+        shape = RectangleShape,
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = Surface1,
+            selectedLabelColor = Mauve,
+            labelColor = Subtext1
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = if (selected) Mauve else Surface1,
+            selectedBorderColor = Mauve,
+            borderWidth = 1.dp,
+            selectedBorderWidth = 1.dp
+        )
+    )
+}
