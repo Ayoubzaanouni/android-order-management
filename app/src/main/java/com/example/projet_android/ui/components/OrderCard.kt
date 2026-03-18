@@ -26,6 +26,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -73,12 +77,11 @@ fun OrderCard(
             .clickable { showDialog = true },
         shape     = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors    = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
 
+            // ── Header ───────────────────────────────────────────────────────
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -116,29 +119,19 @@ fun OrderCard(
                 color     = MaterialTheme.colorScheme.outlineVariant
             )
 
+            // ── Metrics ──────────────────────────────────────────────────────
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                MetricItem(
-                    icon  = Icons.Default.Scale,
-                    label = "Weight",
-                    value = "${order.totalWeight} kg"
-                )
-                MetricItem(
-                    icon  = Icons.Default.Straighten,
-                    label = "Volume",
-                    value = "${order.totalVolume} m³"
-                )
-                MetricItem(
-                    icon  = Icons.Default.AttachMoney,
-                    label = "Price",
-                    value = "$${"%.2f".format(order.totalPrice)}"
-                )
+                MetricItem(Icons.Default.Scale,       "Weight", "${order.totalWeight} kg")
+                MetricItem(Icons.Default.Straighten,  "Volume", "${order.totalVolume} m³")
+                MetricItem(Icons.Default.AttachMoney, "Price",  "$${"%.2f".format(order.totalPrice)}")
             }
 
             Spacer(Modifier.height(12.dp))
 
+            // ── Footer ───────────────────────────────────────────────────────
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

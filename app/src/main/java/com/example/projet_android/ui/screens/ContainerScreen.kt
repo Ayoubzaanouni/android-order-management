@@ -1,69 +1,33 @@
 package com.example.projet_android.ui.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Badge
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.example.projet_android.dao.ContainerDao
 import com.example.projet_android.model.Container
 import com.example.projet_android.model.ContainerStatus
+import com.example.projet_android.ui.components.ContainerDialogs
+import com.example.projet_android.ui.components.ContainerEmptyState
+import com.example.projet_android.ui.components.ContainerFilters
+import com.example.projet_android.ui.components.ContainerList
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
+
 enum class ContainerSortOrder(val label: String) {
     NAME_ASC("Name A➜Z"),
     NAME_DESC("Name Z➜A"),
@@ -72,7 +36,8 @@ enum class ContainerSortOrder(val label: String) {
     VOLUME_ASC("Volume ⬆"),
     VOLUME_DESC("Volume ⬇"),
 }
-private fun ContainerStatus.label() = when (this) {
+
+fun ContainerStatus.label() = when (this) {
     ContainerStatus.ACTIVE      -> "Active"
     ContainerStatus.MAINTENANCE -> "Maintenance"
     ContainerStatus.FULL        -> "Full"
@@ -80,42 +45,48 @@ private fun ContainerStatus.label() = when (this) {
     ContainerStatus.SHIPPED     -> "Shipped"
 }
 
-private fun ContainerStatus.color() = when (this) {
+fun ContainerStatus.color() = when (this) {
     ContainerStatus.ACTIVE      -> Color(0xFF2E7D32)
     ContainerStatus.MAINTENANCE -> Color(0xFFE65100)
     ContainerStatus.FULL        -> Color(0xFF1565C0)
     ContainerStatus.DISABLED    -> Color(0xFF757575)
     ContainerStatus.SHIPPED     -> Color(0xFF6A1B9A)
 }
+
 @Composable
 fun ContainerScreen(
     containerDao: ContainerDao,
     paddingValues: PaddingValues,
     readOnly: Boolean = false
 ) {
-    val allContainers by containerDao.getAllContainers().collectAsState(initial = emptyList())
+    val containers by containerDao.getAllContainers()
+        .collectAsState(initial = emptyList())
+
     val scope = rememberCoroutineScope()
+
     var filterStatus by remember { mutableStateOf<ContainerStatus?>(null) }
     var filterEnabledOnly by remember { mutableStateOf(false) }
     var sortOrder by remember { mutableStateOf(ContainerSortOrder.NAME_ASC) }
-    var showSortMenu by remember { mutableStateOf(false) }
+
     var showAddDialog by remember { mutableStateOf(false) }
     var editingContainer by remember { mutableStateOf<Container?>(null) }
     var deletingContainer by remember { mutableStateOf<Container?>(null) }
 
-    val displayed = allContainers
-        .filter { c -> filterStatus == null || c.status == filterStatus }
-        .filter { c -> !filterEnabledOnly || c.enabled }
-        .let { list ->
-            when (sortOrder) {
-                ContainerSortOrder.NAME_ASC    -> list.sortedBy { it.name.lowercase() }
-                ContainerSortOrder.NAME_DESC   -> list.sortedByDescending { it.name.lowercase() }
-                ContainerSortOrder.WEIGHT_ASC  -> list.sortedBy { it.maxWeight }
-                ContainerSortOrder.WEIGHT_DESC -> list.sortedByDescending { it.maxWeight }
-                ContainerSortOrder.VOLUME_ASC  -> list.sortedBy { it.maxVolume }
-                ContainerSortOrder.VOLUME_DESC -> list.sortedByDescending { it.maxVolume }
+    val displayed = remember(containers, filterStatus, filterEnabledOnly, sortOrder) {
+        containers
+            .filter { filterStatus == null || it.status == filterStatus }
+            .filter { !filterEnabledOnly || it.enabled }
+            .let { list ->
+                when (sortOrder) {
+                    ContainerSortOrder.NAME_ASC -> list.sortedBy { it.name.lowercase() }
+                    ContainerSortOrder.NAME_DESC -> list.sortedByDescending { it.name.lowercase() }
+                    ContainerSortOrder.WEIGHT_ASC -> list.sortedBy { it.maxWeight }
+                    ContainerSortOrder.WEIGHT_DESC -> list.sortedByDescending { it.maxWeight }
+                    ContainerSortOrder.VOLUME_ASC -> list.sortedBy { it.maxVolume }
+                    ContainerSortOrder.VOLUME_DESC -> list.sortedByDescending { it.maxVolume }
+                }
             }
-        }
+    }
 
     Scaffold(
         modifier = Modifier.padding(paddingValues),
@@ -127,116 +98,28 @@ fun ContainerScreen(
             }
         }
     ) { innerPadding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    FilterChip(
-                        selected = filterStatus == null,
-                        onClick = { filterStatus = null },
-                        label = { Text("All") }
-                    )
-                    ContainerStatus.entries.forEach { status ->
-                        FilterChip(
-                            selected = filterStatus == status,
-                            onClick = {
-                                filterStatus = if (filterStatus == status) null else status
-                            },
-                            label = { Text(status.label()) }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Switch(
-                            checked = filterEnabledOnly,
-                            onCheckedChange = { filterEnabledOnly = it },
-                            modifier = Modifier.size(40.dp, 24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Enabled only",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    //sort
-                    Box {
-                        OutlinedButton(
-                            onClick = { showSortMenu = true },
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                sortOrder.label,
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                if (showSortMenu) Icons.Default.KeyboardArrowUp
-                                else Icons.Default.KeyboardArrowDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = showSortMenu,
-                            onDismissRequest = { showSortMenu = false }
-                        ) {
-                            ContainerSortOrder.entries.forEach { order ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            RadioButton(
-                                                selected = sortOrder == order,
-                                                onClick = null
-                                            )
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text(order.label)
-                                        }
-                                    },
-                                    onClick = {
-                                        sortOrder = order
-                                        showSortMenu = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+
+            ContainerFilters(
+                filterStatus = filterStatus,
+                onStatusChange = { filterStatus = it },
+                filterEnabledOnly = filterEnabledOnly,
+                onEnabledOnlyChange = { filterEnabledOnly = it },
+                sortOrder = sortOrder,
+                onSortChange = { sortOrder = it }
+            )
+
             HorizontalDivider()
+
             if (displayed.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = if (allContainers.isEmpty()) "No containers yet"
-                                   else "No containers match the filter",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = if (allContainers.isEmpty()) "Tap + to add your first container"
-                                   else "Try adjusting your filters",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                ContainerEmptyState(
+                    isCompletelyEmpty = containers.isEmpty()
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -555,46 +438,18 @@ private fun ContainerFormDialog(
                             )
                         }
                     }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enabled", style = MaterialTheme.typography.bodyMedium)
-                    Switch(
-                        checked = enabled,
-                        onCheckedChange = { newEnabled ->
-                            enabled = newEnabled
-                            if (status == ContainerStatus.ACTIVE || status == ContainerStatus.DISABLED) {
-                                status = if (newEnabled) ContainerStatus.ACTIVE else ContainerStatus.DISABLED
-                            }
-                        }
-                    )
-                }
+                )
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (isValid) {
-                        onConfirm(
-                            name.trim(),
-                            maxWeight!!,
-                            maxVolume!!,
-                            fillThreshold.toDouble(),
-                            status,
-                            enabled
-                        )
-                    }
-                },
-                enabled = isValid
-            ) {
-                Text(confirmLabel)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
+    }
+
+    ContainerDialogs(
+        showAddDialog = showAddDialog,
+        editingContainer = editingContainer,
+        deletingContainer = deletingContainer,
+        onDismissAdd = { showAddDialog = false },
+        onDismissEdit = { editingContainer = null },
+        onDismissDelete = { deletingContainer = null },
+        containerDao = containerDao
     )
 }

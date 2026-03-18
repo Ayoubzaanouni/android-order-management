@@ -123,7 +123,6 @@ class OrderViewModel(
                     productDao.deleteAll()
                 }
 
-                // 2. Generate and insert fake orders
                 val generatedOrders = OrderSeeder.generateOrders(
                     companyId,
                     orderCount,
