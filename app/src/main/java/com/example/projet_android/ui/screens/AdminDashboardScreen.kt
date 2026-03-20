@@ -19,23 +19,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.projet_android.dao.CompanyDao
 import com.example.projet_android.model.Company
+import com.example.projet_android.ui.components.CommonTopBar
+import com.example.projet_android.ui.theme.*
 import kotlinx.coroutines.launch
 
-private val DarkBg = Color(0xFF0F1117)
-private val CardBg = Color(0xFF1A1D26)
 private val AccentBlue = Color(0xFF4F8EF7)
 private val AccentGreen = Color(0xFF34D399)
 private val AccentRed = Color(0xFFFF6B6B)
 private val AccentAmber = Color(0xFFFBBF24)
-private val TextPrimary = Color(0xFFE8EAF0)
-private val TextSecondary = Color(0xFF9095A8)
 
 private enum class Filter { ALL, PENDING, APPROVED, REJECTED }
 
@@ -60,43 +57,35 @@ fun AdminDashboardScreen(
     val approved = allCompanies.count { it.status == "APPROVED" }
     val rejected = allCompanies.count { it.status == "REJECTED" }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBg)
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.horizontalGradient(listOf(Color(0xFF1E3A8A), Color(0xFF3B82F6)))
-                    )
-                    .statusBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = 20.dp)
-            ) {
-                Column {
-                    Text("Admin Dashboard", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("System Management", fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f))
+    Scaffold(
+        topBar = {
+            CommonTopBar(
+                title = "ADMIN_DASHBOARD",
+                titleColor = Mauve,
+                actions = {
+                    TextButton(onClick = onLogout) {
+                        Text("LOGOUT", color = Red, fontWeight = FontWeight.Bold)
+                    }
                 }
-                TextButton(
-                    onClick = onLogout,
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-                    Text("Logout", color = Color.White.copy(alpha = 0.85f))
-                }
-            }
-
+            )
+        },
+        containerColor = Base
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                StatChip(label = "Total", value = allCompanies.size, color = AccentBlue, modifier = Modifier.weight(1f))
-                StatChip(label = "Pending", value = pending, color = AccentAmber, modifier = Modifier.weight(1f))
-                StatChip(label = "Approved", value = approved, color = AccentGreen, modifier = Modifier.weight(1f))
-                StatChip(label = "Rejected", value = rejected, color = AccentRed, modifier = Modifier.weight(1f))
+                StatChip(label = "Total", value = allCompanies.size, color = Blue, modifier = Modifier.weight(1f))
+                StatChip(label = "Pending", value = pending, color = Yellow, modifier = Modifier.weight(1f))
+                StatChip(label = "Approved", value = approved, color = Green, modifier = Modifier.weight(1f))
+                StatChip(label = "Rejected", value = rejected, color = Red, modifier = Modifier.weight(1f))
             }
 
             LazyRow(
@@ -110,8 +99,10 @@ fun AdminDashboardScreen(
                         onClick = { activeFilter = filter },
                         label = { Text(filter.name) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentBlue,
-                            selectedLabelColor = Color.White
+                            selectedContainerColor = Blue,
+                            selectedLabelColor = Base,
+                            containerColor = Surface0,
+                            labelColor = Text
                         )
                     )
                 }
@@ -119,7 +110,7 @@ fun AdminDashboardScreen(
 
             if (filtered.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No companies", color = TextSecondary)
+                    Text("NO_RECORDS_FOUND", color = Overlay2, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
                 }
             } else {
                 LazyColumn(
@@ -133,7 +124,6 @@ fun AdminDashboardScreen(
                             onReject = { confirmDialog = Pair(company, "REJECTED") }
                         )
                     }
-                    item { Spacer(modifier = Modifier.navigationBarsPadding()) }
                 }
             }
         }
@@ -143,9 +133,9 @@ fun AdminDashboardScreen(
         val verb = if (newStatus == "APPROVED") "approve" else "reject"
         AlertDialog(
             onDismissRequest = { confirmDialog = null },
-            containerColor = CardBg,
-            title = { Text("Confirm", color = TextPrimary) },
-            text = { Text("Are you sure you want to $verb ${company.name}?", color = TextSecondary) },
+            containerColor = Surface0,
+            title = { Text("CONFIRM_ACTION", color = Text) },
+            text = { Text("Are you sure you want to $verb ${company.name}?", color = Subtext1) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -153,31 +143,33 @@ fun AdminDashboardScreen(
                         confirmDialog = null
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (newStatus == "APPROVED") AccentGreen else AccentRed
+                        containerColor = if (newStatus == "APPROVED") Green else Red,
+                        contentColor = Base
                     )
-                ) { Text(verb.replaceFirstChar { it.uppercase() }) }
+                ) { Text(verb.uppercase()) }
             },
             dismissButton = {
                 TextButton(onClick = { confirmDialog = null }) {
-                    Text("Cancel", color = TextSecondary)
+                    Text("CANCEL", color = Overlay2)
                 }
             }
         )
     }
 }
+
 @Composable
 private fun StatChip(label: String, value: Int, color: Color, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg)
+        colors = CardDefaults.cardColors(containerColor = Surface0)
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("$value", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = color)
-            Text(label, fontSize = 11.sp, color = TextSecondary)
+            Text(label, fontSize = 11.sp, color = Subtext0)
         }
     }
 }
@@ -190,9 +182,9 @@ private fun CompanyAdminCard(
 ) {
     val statusColor by animateColorAsState(
         targetValue = when (company.status) {
-            "APPROVED" -> AccentGreen
-            "REJECTED" -> AccentRed
-            else -> AccentAmber
+            "APPROVED" -> Green
+            "REJECTED" -> Red
+            else -> Yellow
         },
         animationSpec = tween(300),
         label = "statusColor"
@@ -200,7 +192,7 @@ private fun CompanyAdminCard(
 
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = Surface0),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -209,15 +201,15 @@ private fun CompanyAdminCard(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(AccentBlue.copy(alpha = 0.15f)),
+                        .background(Blue.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Business, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(22.dp))
+                    Icon(Icons.Default.Business, contentDescription = null, tint = Blue, modifier = Modifier.size(22.dp))
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(company.name, fontWeight = FontWeight.SemiBold, color = TextPrimary, fontSize = 15.sp)
-                    Text(company.email, color = TextSecondary, fontSize = 12.sp)
+                    Text(company.name, fontWeight = FontWeight.SemiBold, color = Text, fontSize = 15.sp)
+                    Text(company.email, color = Subtext0, fontSize = 12.sp)
                 }
                 Surface(
                     shape = RoundedCornerShape(8.dp),
@@ -236,9 +228,9 @@ private fun CompanyAdminCard(
             if (company.phone.isNotBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.Person, contentDescription = null, tint = Subtext0, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(company.phone, color = TextSecondary, fontSize = 12.sp)
+                    Text(company.phone, color = Subtext0, fontSize = 12.sp)
                 }
             }
 
@@ -248,21 +240,22 @@ private fun CompanyAdminCard(
                     Button(
                         onClick = onApprove,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                        colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Base),
                         contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
                         Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Approve", fontSize = 13.sp)
+                        Text("APPROVE", fontSize = 13.sp)
                     }
                     OutlinedButton(
                         onClick = onReject,
                         modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(vertical = 8.dp)
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Red)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp), tint = AccentRed)
+                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp), tint = Red)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Reject", fontSize = 13.sp, color = AccentRed)
+                        Text("REJECT", fontSize = 13.sp, color = Red)
                     }
                 }
             }

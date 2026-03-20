@@ -16,8 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -25,15 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.projet_android.dao.EmployeeDao
 import com.example.projet_android.model.Employee
+import com.example.projet_android.ui.components.CommonTopBar
+import com.example.projet_android.ui.theme.*
 import com.example.projet_android.util.PasswordUtils
 import kotlinx.coroutines.launch
-
-private val CEDarkBg = Color(0xFF0F1117)
-private val CECardBg = Color(0xFF1A1D26)
-private val CEAccent = Color(0xFF4F8EF7)
-private val CETextPrimary = Color(0xFFE8EAF0)
-private val CETextSecondary = Color(0xFF9095A8)
-private val CERed = Color(0xFFFF6B6B)
 
 @Composable
 fun CompanyEmployeesScreen(
@@ -45,34 +40,33 @@ fun CompanyEmployeesScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<Employee?>(null) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(CEDarkBg)
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.horizontalGradient(listOf(Color(0xFF1E3A8A), Color(0xFF3B82F6)))
-                    )
-                    .padding(horizontal = 24.dp, vertical = 20.dp)
+    Scaffold(
+        topBar = {
+            CommonTopBar(title = "EMPLOYEE_DIRECTORY", titleColor = Green)
+        },
+        containerColor = Base,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = Green,
+                contentColor = Base,
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Column {
-                    Text("Employees", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("${employees.size} member(s)", fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f))
-                }
+                Icon(Icons.Default.Add, contentDescription = "Add employee")
             }
-
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
             if (employees.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Person, contentDescription = null, tint = CETextSecondary, modifier = Modifier.size(56.dp))
+                        Icon(Icons.Default.Person, contentDescription = null, tint = Overlay2, modifier = Modifier.size(56.dp))
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("No employees yet", color = CETextSecondary)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Tap + to add the first one", color = CETextSecondary, fontSize = 12.sp)
+                        Text("NO_EMPLOYEES_FOUND", color = Overlay2, fontFamily = FontFamily.Monospace)
                     }
                 }
             } else {
@@ -84,29 +78,18 @@ fun CompanyEmployeesScreen(
                     items(employees, key = { it.id }) { emp ->
                         EmployeeCard(emp, onDelete = { deleteTarget = emp })
                     }
-                    item { Spacer(modifier = Modifier.navigationBarsPadding()) }
                 }
             }
         }
-
-        FloatingActionButton(
-            onClick = { showAddDialog = true },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(24.dp)
-                .navigationBarsPadding(),
-            containerColor = CEAccent
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add employee", tint = Color.White)
-        }
     }
+
     if (showAddDialog) {
         AddEmployeeDialog(
             onDismiss = { showAddDialog = false },
             onConfirm = { name, email, password ->
                 val existingEmployee = employeeDao.getByEmail(email)
                 if (existingEmployee != null) {
-                    return@AddEmployeeDialog "This email is already registered to an employee"
+                    return@AddEmployeeDialog "Email already registered"
                 }
 
                 employeeDao.insert(
@@ -121,23 +104,26 @@ fun CompanyEmployeesScreen(
             }
         )
     }
+
     deleteTarget?.let { emp ->
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
-            containerColor = CECardBg,
-            title = { Text("Delete employee", color = CETextPrimary) },
-            text = { Text("Remove ${emp.name}? This cannot be undone.", color = CETextSecondary) },
+            containerColor = Surface0,
+            title = { Text("DELETE_CONFIRMATION", color = Text, fontFamily = FontFamily.Monospace) },
+            text = { Text("Remove ${emp.name}? This action is irreversible.", color = Subtext1) },
             confirmButton = {
                 Button(
                     onClick = {
                         scope.launch { employeeDao.delete(emp) }
                         deleteTarget = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = CERed)
-                ) { Text("Delete") }
+                    colors = ButtonDefaults.buttonColors(containerColor = Red, contentColor = Base)
+                ) { Text("DELETE") }
             },
             dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text("Cancel", color = CETextSecondary) }
+                TextButton(onClick = { deleteTarget = null }) {
+                    Text("CANCEL", color = Overlay2)
+                }
             }
         )
     }
@@ -147,7 +133,7 @@ fun CompanyEmployeesScreen(
 private fun EmployeeCard(employee: Employee, onDelete: () -> Unit) {
     Card(
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = CECardBg)
+        colors = CardDefaults.cardColors(containerColor = Surface0)
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -157,23 +143,23 @@ private fun EmployeeCard(employee: Employee, onDelete: () -> Unit) {
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(CEAccent.copy(alpha = 0.15f)),
+                    .background(Green.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     employee.name.take(1).uppercase(),
-                    color = CEAccent,
+                    color = Green,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(employee.name, fontWeight = FontWeight.SemiBold, color = CETextPrimary, fontSize = 15.sp)
-                Text(employee.email, color = CETextSecondary, fontSize = 12.sp)
+                Text(employee.name, fontWeight = FontWeight.SemiBold, color = Text, fontSize = 15.sp)
+                Text(employee.email, color = Subtext0, fontSize = 12.sp)
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = CERed)
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Red)
             }
         }
     }
@@ -192,32 +178,50 @@ private fun AddEmployeeDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = CECardBg,
-        title = { Text("Add Employee", color = CETextPrimary) },
+        containerColor = Surface0,
+        title = { Text("ADD_NEW_EMPLOYEE", color = Text, fontFamily = FontFamily.Monospace) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = name, onValueChange = { name = it; error = null },
-                    label = { Text("Full Name", color = CETextSecondary) },
+                    label = { Text("Full Name", color = Subtext1) },
                     singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Green,
+                        unfocusedBorderColor = Surface2,
+                        focusedLabelColor = Green,
+                        cursorColor = Green
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = email, onValueChange = { email = it; error = null },
-                    label = { Text("Email", color = CETextSecondary) },
+                    label = { Text("Email Address", color = Subtext1) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Green,
+                        unfocusedBorderColor = Surface2,
+                        focusedLabelColor = Green,
+                        cursorColor = Green
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = password, onValueChange = { password = it; error = null },
-                    label = { Text("Password", color = CETextSecondary) },
+                    label = { Text("Password", color = Subtext1) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Green,
+                        unfocusedBorderColor = Surface2,
+                        focusedLabelColor = Green,
+                        cursorColor = Green
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
                 if (error != null) {
-                    Text(error!!, color = CERed, fontSize = 12.sp)
+                    Text(error!!, color = Red, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
                 }
             }
         },
@@ -225,9 +229,9 @@ private fun AddEmployeeDialog(
             Button(
                 onClick = {
                     when {
-                        name.isBlank() -> error = "Name is required"
-                        email.isBlank() -> error = "Email is required"
-                        password.length < 6 -> error = "Password must be at least 6 characters"
+                        name.isBlank() -> error = "Name required"
+                        email.isBlank() -> error = "Email required"
+                        password.length < 6 -> error = "Min. 6 chars"
                         else -> {
                             scope.launch {
                                 val resultError = onConfirm(name.trim(), email.trim(), password)
@@ -240,11 +244,13 @@ private fun AddEmployeeDialog(
                         }
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = CEAccent)
-            ) { Text("Add") }
+                colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Base)
+            ) { Text("ADD_USER") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel", color = CETextSecondary) }
+            TextButton(onClick = onDismiss) {
+                Text("CANCEL", color = Overlay2)
+            }
         }
     )
 }

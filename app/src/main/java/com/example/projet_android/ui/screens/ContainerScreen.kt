@@ -19,13 +19,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.unit.dp
 import com.example.projet_android.dao.ContainerDao
 import com.example.projet_android.model.Container
 import com.example.projet_android.model.ContainerStatus
-import com.example.projet_android.ui.components.ContainerDialogs
-import com.example.projet_android.ui.components.ContainerEmptyState
-import com.example.projet_android.ui.components.ContainerFilters
-import com.example.projet_android.ui.components.ContainerList
+import com.example.projet_android.ui.components.*
 import com.example.projet_android.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -92,6 +90,9 @@ fun ContainerScreen(
     Scaffold(
         modifier = Modifier.padding(paddingValues),
         containerColor = Base,
+        topBar = {
+            CommonTopBar(title = "CONTAINER_INVENTORY", titleColor = Blue)
+        },
         floatingActionButton = {
             if (!readOnly) {
                 FloatingActionButton(

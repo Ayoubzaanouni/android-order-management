@@ -26,8 +26,7 @@ fun OrderList(
     getProductsForOrder: (Int) -> Flow<List<Product>>,
     modifier       : Modifier = Modifier,
     canDelete      : Boolean = false,
-    onDelete       : (Order) -> Unit = {},
-    onStatusChange : ((order: Order, newStatus: String) -> Unit)? = null
+    onDelete       : (Order) -> Unit = {}
 ) {
     Box(modifier = modifier.fillMaxSize()) {
 
@@ -50,8 +49,7 @@ fun OrderList(
                     getProductsForOrder = getProductsForOrder,
                     modifier       = Modifier.animateItem(),
                     canDelete      = canDelete,
-                    onDelete       = { onDelete(order) },
-                    onStatusChange = onStatusChange?.let { cb -> { newStatus -> cb(order, newStatus) } }
+                    onDelete       = { onDelete(order) }
                 )
             }
         }

@@ -26,7 +26,9 @@ private val DarkColorScheme = darkColorScheme(
     onError = Base,
     outline = Overlay0,
     surfaceVariant = Surface1,
-    onSurfaceVariant = Subtext0
+    onSurfaceVariant = Subtext0,
+    secondaryContainer = Surface1,
+    onSecondaryContainer = Text
 )
 
 // For a TUI feel, we can use the same palette or a slightly lighter variation, 
@@ -43,7 +45,9 @@ private val LightColorScheme = lightColorScheme(
     onBackground = Text,
     onSurface = Text,
     error = Red,
-    onError = Base
+    onError = Base,
+    secondaryContainer = Surface1,
+    onSecondaryContainer = Text
 )
 
 @Composable

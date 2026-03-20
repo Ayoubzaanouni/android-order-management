@@ -13,11 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.projet_android.ui.components.EmptyOrdersPlaceholder
-import com.example.projet_android.ui.components.FullScreenLoading
-import com.example.projet_android.ui.components.OrderList
-import com.example.projet_android.ui.components.OrderTopBar
-import com.example.projet_android.ui.components.SeedFab
+import com.example.projet_android.ui.components.*
+import com.example.projet_android.ui.theme.Base
 import com.example.projet_android.ui.view_model.OrderViewModel
 import com.example.projet_android.ui.view_model.SeedingState
 
@@ -53,6 +50,7 @@ fun OrderScreen(
                 isLoading  = seedingState is SeedingState.Loading
             )
         },
+        containerColor = Base,
         floatingActionButton = {
             if (canDelete) {
                 SeedFab(
@@ -80,14 +78,10 @@ fun OrderScreen(
                         isLoading      = seedingState is SeedingState.Loading,
                         getProductsForOrder = viewModel::getProductsForOrder,
                         canDelete      = canDelete,
-                        onDelete       = { order -> viewModel.deleteOrder(order) },
-                        onStatusChange = if (canChangeStatus) { order, newStatus ->
-                            viewModel.updateOrderStatus(order, newStatus)
-                        } else null
+                        onDelete       = { order -> viewModel.deleteOrder(order) }
                     )
                 }
             }
         }
     }
 }
-
