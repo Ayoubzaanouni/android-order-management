@@ -8,6 +8,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.sp
 import com.example.projet_android.ui.theme.Mantle
 import com.example.projet_android.ui.theme.Text
 
@@ -15,6 +16,7 @@ data class NavigationDestination(
     val label: String,
     val icon: ImageVector,
     val isSelected: Boolean,
+    val hasBadge: Boolean = false,
     val onClick: () -> Unit
 )
 
@@ -29,8 +31,26 @@ fun AppNavigationWrapper(
         navigationSuiteItems = {
             destinations.forEach { destination ->
                 item(
-                    icon = { Icon(destination.icon, contentDescription = destination.label) },
-                    label = { Text(destination.label) },
+                    icon = { 
+                        if (destination.hasBadge) {
+                            androidx.compose.material3.BadgedBox(
+                                badge = { androidx.compose.material3.Badge() }
+                            ) {
+                                Icon(destination.icon, contentDescription = destination.label)
+                            }
+                        } else {
+                            Icon(destination.icon, contentDescription = destination.label)
+                        }
+                    },
+                    label = { 
+                        Text(
+                            text = destination.label, 
+                            style = MaterialTheme.typography.labelSmall, 
+                            fontSize = 8.sp,
+                            lineHeight = 10.sp,
+                            maxLines = 1
+                        ) 
+                    },
                     selected = destination.isSelected,
                     onClick = destination.onClick
                 )

@@ -20,4 +20,7 @@ interface ContainerDao {
     suspend fun delete(container: Container): Int
     @Query("SELECT * FROM container")
     fun getAllContainers(): Flow<List<Container>>
+
+    @Query("SELECT * FROM container WHERE enabled = 1")
+    suspend fun getActiveContainersSync(): List<Container>
 }

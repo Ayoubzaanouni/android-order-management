@@ -11,8 +11,8 @@ import kotlin.random.Random
 object OrderSeeder {
 
     private val orderStatuses = listOf(
-        "PENDING",
-        "PROCESSING",
+        "PENDING", "PENDING", "PENDING", "PENDING",
+        "PROCESSING", "PROCESSING",
         "SHIPPED",
         "DELIVERED",
         "CANCELLED"
