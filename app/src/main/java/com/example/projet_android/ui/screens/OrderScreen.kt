@@ -22,7 +22,8 @@ import com.example.projet_android.ui.view_model.SeedingState
 fun OrderScreen(
     viewModel       : OrderViewModel = viewModel(),
     canDelete       : Boolean = true,
-    canChangeStatus : Boolean = true
+    canChangeStatus : Boolean = true,
+    onOrdersSeeded  : () -> Unit = {}
 ) {
     val orders by viewModel.orders.collectAsStateWithLifecycle()
     val seedingState by viewModel.seedingState.collectAsStateWithLifecycle()
@@ -32,6 +33,7 @@ fun OrderScreen(
         when (seedingState) {
             is SeedingState.Success -> {
                 snackbarHostState.showSnackbar((seedingState as SeedingState.Success).message)
+                onOrdersSeeded()
                 viewModel.resetSeedingState()
             }
             is SeedingState.Error -> {

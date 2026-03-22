@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +26,7 @@ import com.example.projet_android.ui.components.NavigationDestination
 import com.example.projet_android.ui.screens.*
 import com.example.projet_android.ui.theme.ProjetandroidTheme
 import com.example.projet_android.ui.view_model.OrderViewModel
+import com.example.projet_android.ui.view_model.ShippingViewModel
 import com.example.projet_android.util.PasswordUtils
 import com.example.projet_android.util.SessionManager
 import com.example.projet_android.util.SessionState
@@ -53,11 +55,13 @@ enum class CompanyDestination(val label: String, val icon: ImageVector) {
     HOME("Orders", Icons.Default.Home),
     CONTAINERS("Containers", Icons.Default.Settings),
     EMPLOYEES("Employees", Icons.Default.Group),
+    SHIPPING("Shipping", Icons.Default.LocalShipping),
     PROFILE("Profile", Icons.Default.AccountBox),
 }
 enum class EmployeeDestination(val label: String, val icon: ImageVector) {
     HOME("Orders", Icons.Default.Home),
     CONTAINERS("Containers", Icons.Default.Settings),
+    SHIPPING("Shipping", Icons.Default.LocalShipping),
     PROFILE("Profile", Icons.Default.AccountBox),
 }
 
@@ -175,13 +179,18 @@ fun ProjetandroidApp(database: AppDatabase, sessionManager: SessionManager) {
 @Composable
 fun CompanyAppContent(companyId: Int, database: AppDatabase, onLogout: () -> Unit) {
     var currentDestination by rememberSaveable { mutableStateOf(CompanyDestination.HOME) }
+    var hasNewOrders by rememberSaveable { mutableStateOf(false) }
 
     val destinations = CompanyDestination.entries.map {
         NavigationDestination(
             label = it.label,
             icon = it.icon,
             isSelected = it == currentDestination,
-            onClick = { currentDestination = it }
+            hasBadge = it == CompanyDestination.SHIPPING && hasNewOrders,
+            onClick = { 
+                currentDestination = it 
+                if (it == CompanyDestination.SHIPPING) hasNewOrders = false
+            }
         )
     }
 
@@ -196,7 +205,8 @@ fun CompanyAppContent(companyId: Int, database: AppDatabase, onLogout: () -> Uni
                         OrderScreen(
                             viewModel = viewModel(factory = OrderViewModel.factory(database, companyId)),
                             canDelete = true,
-                            canChangeStatus = true
+                            canChangeStatus = true,
+                            onOrdersSeeded = { hasNewOrders = true }
                         )
                     }
                     CompanyDestination.CONTAINERS -> {
@@ -210,6 +220,12 @@ fun CompanyAppContent(companyId: Int, database: AppDatabase, onLogout: () -> Uni
                         CompanyEmployeesScreen(
                             companyId = companyId,
                             employeeDao = database.employeeDao()
+                        )
+                    }
+                    CompanyDestination.SHIPPING -> {
+                        ShippingPlanScreen(
+                            viewModel = viewModel(factory = ShippingViewModel.factory(database)),
+                            paddingValues = PaddingValues(0.dp)
                         )
                     }
                     CompanyDestination.PROFILE -> {
@@ -253,6 +269,12 @@ fun EmployeeAppContent(companyId: Int, database: AppDatabase, onLogout: () -> Un
                             containerDao = database.containerDao(),
                             paddingValues = PaddingValues(0.dp),
                             readOnly = true
+                        )
+                    }
+                    EmployeeDestination.SHIPPING -> {
+                        ShippingPlanScreen(
+                            viewModel = viewModel(factory = ShippingViewModel.factory(database)),
+                            paddingValues = PaddingValues(0.dp)
                         )
                     }
                     EmployeeDestination.PROFILE -> {

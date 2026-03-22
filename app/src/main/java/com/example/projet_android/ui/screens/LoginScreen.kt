@@ -101,7 +101,7 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = identifier,
                         onValueChange = { identifier = it; errorMessage = null },
-                        label = { Text("Email or Username") },
+                        label = { Text("Email") },
                         leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         singleLine = true,
@@ -144,11 +144,6 @@ fun LoginScreen(
                         Text("No account yet? Sign Up")
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            TextButton(onClick = onNavigateToSignUp) {
-                Text("Don't have an account? Register Company", color = MaterialTheme.colorScheme.secondary)
             }
         }
     }
