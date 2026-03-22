@@ -129,6 +129,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "order_management_database"
                 )
                     .addMigrations(MIGRATION_4_5, MIGRATION_5_6)
+                    .fallbackToDestructiveMigration(false)
                     .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
